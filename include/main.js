@@ -1,5 +1,6 @@
 mapboxgl.accessToken = 'pk.eyJ1IjoiemhtZW5nIiwiYSI6ImNqdm1qenB3ajFkdzE0M3BmaXdueWEwOTcifQ.m4KZ0r4F7FzMAkDK8iA-XA';
 
+
 // Doctor bug
 var bug;
 
