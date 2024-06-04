@@ -76,66 +76,66 @@
         const pмTilesSources = {
             Congo: {
                 '2018': {
-                    'v1': 'https://raw.githack.com/grace-du/crop-land-maps/main/congo.pmtiles',
-                    'v2': 'https://example.com/congo-2018-v2.pmtiles',
-                    'v3': 'https://example.com/congo-2018-v3.pmtiles'
+                    'v1': 'https://github.com/agroimpacts/webmapper/raw/main/congo.pmtiles',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2019': {
-                    'v1': 'https://example.com/congo-2019-v1.pmtiles',
-                    'v2': 'https://example.com/congo-2019-v2.pmtiles',
-                    'v3': 'https://example.com/congo-2019-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2020': {
-                    'v1': 'https://example.com/congo-2020-v1.pmtiles',
-                    'v2': 'https://example.com/congo-2020-v2.pmtiles',
-                    'v3': 'https://example.com/congo-2020-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2021': {
-                    'v1': 'https://example.com/congo-2021-v1.pmtiles',
-                    'v2': 'https://example.com/congo-2021-v2.pmtiles',
-                    'v3': 'https://example.com/congo-2021-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2022': {
-                    'v1': 'https://example.com/congo-2022-v1.pmtiles',
-                    'v2': 'https://example.com/congo-2022-v2.pmtiles',
-                    'v3': 'https://example.com/congo-2022-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2023': {
-                    'v1': 'https://example.com/congo-2023-v1.pmtiles',
-                    'v2': 'https://example.com/congo-2023-v2.pmtiles',
-                    'v3': 'https://example.com/congo-2023-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 }
             },
             Ghana: {
                 '2018': {
-                    'v1': 'https://example.com/ghana-2018-v1.pmtiles',
-                    'v2': 'https://example.com/ghana-2018-v2.pmtiles',
-                    'v3': 'https://example.com/ghana-2018-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2019': {
-                    'v1': 'https://example.com/ghana-2019-v1.pmtiles',
-                    'v2': 'https://example.com/ghana-2019-v2.pmtiles',
-                    'v3': 'https://example.com/ghana-2019-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2020': {
-                    'v1': 'https://example.com/ghana-2020-v1.pmtiles',
-                    'v2': 'https://example.com/ghana-2020-v2.pmtiles',
-                    'v3': 'https://example.com/ghana-2020-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2021': {
-                    'v1': 'https://example.com/ghana-2021-v1.pmtiles',
-                    'v2': 'https://example.com/ghana-2021-v2.pmtiles',
-                    'v3': 'https://example.com/ghana-2021-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2022': {
-                    'v1': 'https://example.com/ghana-2022-v1.pmtiles',
-                    'v2': 'https://example.com/ghana-2022-v2.pmtiles',
-                    'v3': 'https://example.com/ghana-2022-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 },
                 '2023': {
-                    'v1': 'https://example.com/ghana-2023-v1.pmtiles',
-                    'v2': 'https://example.com/ghana-2023-v2.pmtiles',
-                    'v3': 'https://example.com/ghana-2023-v3.pmtiles'
+                    'v1': '',
+                    'v2': '',
+                    'v3': ''
                 }
             }
         };
@@ -156,7 +156,6 @@
         const ghanaCenter = ol.proj.fromLonLat([-0.2, 7.95]);
         const ghanaZoom = 7;
 
-        // Add the vector layer when a country, year, and version are selected
         let vectorLayer;
 
         function zoomToCountry(country, year, version) {
