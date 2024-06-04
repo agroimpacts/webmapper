@@ -1,173 +1,286 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>Mapping Africa</title>
-<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>PMTiles OpenLayers Vector with MapTiler Hybrid Base Map</title>
+    <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/npm/ol@v7.3.0/dist/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.3.0/ol.css">
+    <script src="https://unpkg.com/ol-pmtiles@0.3.0/dist/olpmtiles.js"></script>
+    <style>
+        body, #map {
+            height: 100vh;
+            margin: 0;
+        }
 
-<!-- MAPBOX API -->
-<script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+        /* Dropdown styles */
+        .dropdown {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
 
-<!-- D3 RESOURCE -->
-<script src="https://d3js.org/d3-collection.v1.min.js"></script>
-<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-<script src="https://d3js.org/d3-dsv.v1.min.js"></script>
-<script src="https://d3js.org/d3-request.v1.min.js"></script>
+        .dropdown > div {
+            position: relative;
+        }
 
-<!-- JQUERY BOOSTSTRAP API -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+        .dropdown button {
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-<!-- PLUGIN RESOURCE -->
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-compare/v0.4.0/mapbox-gl-compare.js"></script>
-<link
-    rel="stylesheet"
-    href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-compare/v0.4.0/mapbox-gl-compare.css"
-    type="text/css"
-/>
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
 
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
 
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
 
-
-<!-- LOCAL RESOURCE -->
-<link href="/Summer24/webmapper/css/style.css" rel="stylesheet" />
-<link href="/Summer24/webmapper/css/bodyStyle.css" rel="stylesheet" />	
-
-
+        .dropdown > div:hover .dropdown-content {
+            display: block;
+        }
+    </style>
 </head>
-
-
 <body>
+    <div id="map"></div>
+    <script type="text/javascript">
+        // MapTiler hybrid base layer
+        const hybridBaseLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: 'https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=0rXt9evmwC5e2EW3sauy',
+                attributions: '© MapTiler © OpenStreetMap contributors',
+                maxZoom: 20
+            })
+        });
 
-<div class="banner">
-  <p class="mrq">
-    ***The maps shown here are a Version 1 set of crop field boundaries for Ghana for 2018. Please see <a target="_blank" href="https://eartharxiv.org/repository/view/2155/">here</a> for more details on the dataset, including its accuracy. Version 2 maps and a redesigned map interface are coming soon!***
-  </p>
-</div>
+        // Map of country, year, and version to PMTiles URL
+        const pмTilesSources = {
+            Congo: {
+                '2018': {
+                    'v1': 'https://raw.githack.com/grace-du/crop-land-maps/main/congo.pmtiles',
+                    'v2': 'https://example.com/congo-2018-v2.pmtiles',
+                    'v3': 'https://example.com/congo-2018-v3.pmtiles'
+                },
+                '2019': {
+                    'v1': 'https://example.com/congo-2019-v1.pmtiles',
+                    'v2': 'https://example.com/congo-2019-v2.pmtiles',
+                    'v3': 'https://example.com/congo-2019-v3.pmtiles'
+                },
+                '2020': {
+                    'v1': 'https://example.com/congo-2020-v1.pmtiles',
+                    'v2': 'https://example.com/congo-2020-v2.pmtiles',
+                    'v3': 'https://example.com/congo-2020-v3.pmtiles'
+                },
+                '2021': {
+                    'v1': 'https://example.com/congo-2021-v1.pmtiles',
+                    'v2': 'https://example.com/congo-2021-v2.pmtiles',
+                    'v3': 'https://example.com/congo-2021-v3.pmtiles'
+                },
+                '2022': {
+                    'v1': 'https://example.com/congo-2022-v1.pmtiles',
+                    'v2': 'https://example.com/congo-2022-v2.pmtiles',
+                    'v3': 'https://example.com/congo-2022-v3.pmtiles'
+                },
+                '2023': {
+                    'v1': 'https://example.com/congo-2023-v1.pmtiles',
+                    'v2': 'https://example.com/congo-2023-v2.pmtiles',
+                    'v3': 'https://example.com/congo-2023-v3.pmtiles'
+                }
+            },
+            Ghana: {
+                '2018': {
+                    'v1': 'https://example.com/ghana-2018-v1.pmtiles',
+                    'v2': 'https://example.com/ghana-2018-v2.pmtiles',
+                    'v3': 'https://example.com/ghana-2018-v3.pmtiles'
+                },
+                '2019': {
+                    'v1': 'https://example.com/ghana-2019-v1.pmtiles',
+                    'v2': 'https://example.com/ghana-2019-v2.pmtiles',
+                    'v3': 'https://example.com/ghana-2019-v3.pmtiles'
+                },
+                '2020': {
+                    'v1': 'https://example.com/ghana-2020-v1.pmtiles',
+                    'v2': 'https://example.com/ghana-2020-v2.pmtiles',
+                    'v3': 'https://example.com/ghana-2020-v3.pmtiles'
+                },
+                '2021': {
+                    'v1': 'https://example.com/ghana-2021-v1.pmtiles',
+                    'v2': 'https://example.com/ghana-2021-v2.pmtiles',
+                    'v3': 'https://example.com/ghana-2021-v3.pmtiles'
+                },
+                '2022': {
+                    'v1': 'https://example.com/ghana-2022-v1.pmtiles',
+                    'v2': 'https://example.com/ghana-2022-v2.pmtiles',
+                    'v3': 'https://example.com/ghana-2022-v3.pmtiles'
+                },
+                '2023': {
+                    'v1': 'https://example.com/ghana-2023-v1.pmtiles',
+                    'v2': 'https://example.com/ghana-2023-v2.pmtiles',
+                    'v3': 'https://example.com/ghana-2023-v3.pmtiles'
+                }
+            }
+        };
 
-<div id="map-overlay" class="map-overlay"></div>
-<!-- <div id="sys-info" class="sys-info">
-  <div class="sys-info-text">ATTENTION: CURRENTLY WE ONLY HAVE GS/OS IMAGE FOR AOI 1,2,3</div>
-</div> -->
+        // OpenLayers map with the new base layer and vector layer
+        const map = new ol.Map({
+            layers: [hybridBaseLayer],
+            target: 'map',
+            view: new ol.View({
+                center: ol.proj.fromLonLat([3.3, 7.85]),
+                zoom: 5
+            })
+        });
 
-<!-- Start: CSS Based Menu -->
-<h1 class="select-title">AOI Options</h1>
-<div class="select">
-  <select name="slct" id="slct">
-    <option selected disabled value="0">Choose an option</option>
-    <option value="1">AOI 1</option>
-    <option value="2">AOI 2</option>
-    <option value="3">AOI 3</option>
-    <option value="4">AOI 4</option>
-    <option value="5">AOI 5</option>
-    <option value="6">AOI 6</option>
-    <option value="7">AOI 7</option>
-    <option value="8">AOI 8</option>
-    <option value="9">AOI 9</option>
-    <option value="10">AOI 10</option>
-    <option value="11">AOI 11</option>
-    <option value="12">AOI 12</option>
-    <option value="13">AOI 13</option>
-    <option value="14">AOI 14</option>
-    <option value="15">AOI 15</option>
-    <option value="16">AOI 16</option>
-    <!-- <option value="99">All AOI</option> -->
-  </select>
-</div>
+        // Congo extent (center and zoom)
+        const congoCenter = ol.proj.fromLonLat([15.8277, -0.2280]);
+        const congoZoom = 7;
+        const ghanaCenter = ol.proj.fromLonLat([-0.2, 7.95]);
+        const ghanaZoom = 7;
 
-<div class="check-bowl">
-  <div>
-    <div class="check-atr" id="fieldvct-block" style="display: inline-block;">
-      <input type="checkbox" value="fieldPoly" id="fieldPoly">
-      Field Polygon
-    </div>
-    <div class="check-atr" id="aoisvct-block" style="display: inline-block; margin-left: 8%;">
-      <input type="checkbox" value="aoisPoly" id="aoisPoly">
-        AOIs Indicator
-    </div>
-  </div>
+        // Add the vector layer when a country, year, and version are selected
+        let vectorLayer;
 
+        function zoomToCountry(country, year, version) {
+            if (!vectorLayer) {
+                vectorLayer = new ol.layer.VectorTile({
+                    declutter: true,
+                    source: new olpmtiles.PMTilesVectorSource({
+                        url: pмTilesSources[country][year][version]
+                    }),
+                    style: new ol.style.Style({
+                        stroke: new ol.style.Stroke({
+                            color: 'blue',
+                            width: 1,
+                        }),
+                        fill: new ol.style.Fill({
+                            color: 'rgba(0,0,0,0)', //polygon fill transparent
+                        })
+                    })
+                });
+                map.addLayer(vectorLayer);
+            } else {
+                vectorLayer.getSource().setUrl(pмTilesSources[country][year][version]);
+            }
 
-  <div id="growseason-block">
-    Growing Season Images
-    <div class="check-atr">
-      <div style="display: inline-block;">
-        <input type="checkbox" value="GS" id="GS">
-      </div>
-      <div style="display: inline-block;">TCC</div>
-      
-      <div style="display: inline-block; margin-left: 20%;">
-        <input type="checkbox" id="GS-FCC"> 
-      </div>
-      <div style="display: inline-block;">FCC</div>
-  
-    </div>
-  </div>
+            let center, zoom;
+            switch (country) {
+                case 'Congo':
+                    center = congoCenter;
+                    zoom = congoZoom;
+                    break;
+                case 'Ghana':
+                    center = ghanaCenter;
+                    zoom = ghanaZoom;
+                    break;
+            }
 
+            map.getView().animate({
+                center: center,
+                zoom: zoom,
+                duration: 1000 // Smooth transition animation (1 second)
+            });
 
-  <div id="offseason-block">
-    Off Season Images
-    <div class="check-atr">
-      <div style="display: inline-block;">
-        <input type="checkbox" value="OS" id="OS">
-      </div>
-      <div style="display: inline-block;">TCC</div>
+            updateDropdownButtonText(country, year, version);
+        }
 
-      <div style="display: inline-block; margin-left: 20%;">
-        <input type="checkbox" id="OS-FCC">
-      </div>
-      <div style="display: inline-block;">FCC</div>
-  
-    </div>
-  </div>
+        // Function to update the dropdown button text
+        function updateDropdownButtonText(country, year, version) {
+            countryButton.textContent = `Country: ${country}`;
+            yearButton.textContent = `Year: ${year}`;
+            versionButton.textContent = `Version: ${version}`;
+        }
 
+        // Create and append the dropdowns
+        const dropdown = document.createElement('div');
+        dropdown.className = 'dropdown';
 
-  <div class="check-atr" id="probability-block">
-    <div style="display: inline-block;">
-      <input type="checkbox" value="Prob" id="Prob">
-    </div>
-    <div style="display: inline-block;">Probability Map</div>
+        // Country dropdown
+        const countryDropdown = document.createElement('div');
+        const countryButton = document.createElement('button');
+        countryButton.textContent = 'Country';
+        const countryContent = document.createElement('div');
+        countryContent.className = 'dropdown-content';
+        ['Congo', 'Ghana'].forEach(country => {
+            const countryLink = document.createElement('a');
+            countryLink.textContent = country;
+            countryLink.onclick = () => {
+                updateYearDropdown(country);
+                updateVersionDropdown(country, '2018');
+                zoomToCountry(country, '2018', 'v1');
+            };
+            countryContent.appendChild(countryLink);
+        });
+        countryDropdown.appendChild(countryButton);
+        countryDropdown.appendChild(countryContent);
 
-    <div style="display: inline-block; margin-left: 6%;">Compare</div>
-    
-    <div class="rightslider">
-      <label class="switch">
-        <input class="switch-input" type="checkbox" id="Prob-CP"/>
-        <span class="switch-label" data-on="On" data-off="Off"></span> 
-        <span class="switch-handle"></span> 
-      </label>
-    </div>
+        // Year dropdown
+        const yearDropdown = document.createElement('div');
+        const yearButton = document.createElement('button');
+        yearButton.textContent = 'Year';
+        const yearContent = document.createElement('div');
+        yearContent.className = 'dropdown-content';
 
-  </div>
-  <!-- description -->
-  <div class="check-bowl-annotation">
-    <div>TCC: True Color Composite</div>
-    <div>FCC: False Color Composite</div>
-  </div>
-</div>
-<!-- End: CSS Based Menu -->
+        // Version dropdown
+        const versionDropdown = document.createElement('div');
+        const versionButton = document.createElement('button');
+        versionButton.textContent = 'Version';
+        const versionContent = document.createElement('div');
+        versionContent.className = 'dropdown-content';
 
+        // Function to update the year dropdown
+        function updateYearDropdown(country) {
+            yearContent.innerHTML = '';
+            Object.keys(pмTilesSources[country]).forEach(year => {
+                const yearLink = document.createElement('a');
+                yearLink.textContent = year;
+                yearLink.onclick = () => {
+                    updateVersionDropdown(country, year);
+                    zoomToCountry(country, year, 'v1');
+                };
+                yearContent.appendChild(yearLink);
+            });
+        }
 
-<div id="comparison-container">
-  <div id="map" class="cpmap"></div>
-  <div id="map-brother" class="cpmap-reset"></div>
-</div>
+        // Function to update the version dropdown
+        function updateVersionDropdown(country, year) {
+            versionContent.innerHTML = '';
+            Object.keys(pмTilesSources[country][year]).forEach(version => {
+                const versionLink = document.createElement('a');
+                versionLink.textContent = version;
+                versionLink.onclick = () => zoomToCountry(country, year, version);
+                versionContent.appendChild(versionLink);
+            });
+        }
 
-<script src="include/main.js"></script>
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-175597190-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+        yearDropdown.appendChild(yearButton);
+        yearDropdown.appendChild(yearContent);
 
-  gtag('config', 'UA-175597190-1');
-</script>
+        versionDropdown.appendChild(versionButton);
+        versionDropdown.appendChild(versionContent);
 
-
+        dropdown.appendChild(countryDropdown);
+        dropdown.appendChild(yearDropdown);
+        dropdown.appendChild(versionDropdown);
+        document.getElementById('map').appendChild(dropdown);
+    </script>
 </body>
-
 </html>
