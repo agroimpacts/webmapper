@@ -12,40 +12,23 @@
             margin: 0;
         }
 
-        /* Style for dropdown menu */
-        .dropdown {
+        /* stlyle for zoom extent button */
+        button.congo-button {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 60px;
+            left: 10px;
             z-index: 1000;
+            padding: 5px 10px;
             background-color: white;
             border: 1px solid #ddd;
             border-radius: 4px;
-            padding: 5px;
+            cursor: pointer;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <div class="dropdown">
-        <select id="countrySelect">
-            <option value="congo">Congo</option>
-            <option value="ghana">Ghana</option>
-        </select>
-        <select id="yearSelect">
-            <option value="2018">2018</option>
-            <option value="2019">2019</option>
-            <option value="2020">2020</option>
-            <option value="2021">2021</option>
-            <option value="2022">2022</option>
-            <option value="2023">2023</option>
-        </select>
-        <select id="versionSelect">
-            <option value="v1">v1</option>
-            <option value="v2">v2</option>
-            <option value="v3">v3</option>
-        </select>
-    </div>
     <script type="text/javascript">
         // MapTiler hybrid base layer
         const hybridBaseLayer = new ol.layer.Tile({
@@ -58,20 +41,20 @@
 
         // Vector layer for PMTiles
         const vectorLayer = new ol.layer.VectorTile({
-            declutter: true,
-            source: new olpmtiles.PMTilesVectorSource({
-                url: "https://raw.githack.com/grace-du/crop-land-maps/main/congo.pmtiles"
-            }),
-            style: new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: 'blue',
-                    width: 1,
+                declutter: true,
+                source: new olpmtiles.PMTilesVectorSource({
+                    url: "https://raw.githack.com/grace-du/crop-land-maps/main/congo.pmtiles"
                 }),
-                fill: new ol.style.Fill({
-                    color: 'rgba(0,0,0,0)', //polygon fill transparent
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: 'blue',
+                        width: 1,
+                    }),
+                    fill: new ol.style.Fill({
+                        color: 'rgba(0,0,0,0)', //polygon fill transparent
+                    })
                 })
-            })
-        });
+            });
 
         // OpenLayers map with the new base layer and vector layer
         const map = new ol.Map({
@@ -83,26 +66,26 @@
             })
         });
 
-        // Get the dropdown select elements
-        const countrySelect = document.getElementById('countrySelect');
-        const yearSelect = document.getElementById('yearSelect');
-        const versionSelect = document.getElementById('versionSelect');
+        // Congo extent (center and zoom)
+        const congoCenter = ol.proj.fromLonLat([15.8277, -0.2280]);
+        const congoZoom = 7;
 
-        // Function to update the PMTiles source based on dropdown selections
-        function updatePMTilesSource() {
-            const country = countrySelect.value;
-            const year = yearSelect.value;
-            const version = versionSelect.value;
-            const url = `https://raw.githack.com/grace-du/crop-land-maps/main/${country}_${year}_${version}.pmtiles`;
-            vectorLayer.setSource(new olpmtiles.PMTilesVectorSource({
-                url: url
-            }));
+        // Function to zoom to the Congo extent
+        function zoomToCongo() {
+            map.getView().animate({
+                center: congoCenter,
+                zoom: congoZoom,
+                duration: 1000 // Smooth transition animation (1 second)
+            });
         }
 
-        // Add event listeners to the dropdown selects
-        countrySelect.addEventListener('change', updatePMTilesSource);
-        yearSelect.addEventListener('change', updatePMTilesSource);
-        versionSelect.addEventListener('change', updatePMTilesSource);
+        // Create and append the Congo button
+        const congoButton = document.createElement('button');
+        congoButton.innerHTML = 'Congo';
+        congoButton.className = 'congo-button';
+        congoButton.onclick = zoomToCongo;
+        // document.querySelector('.ol-overlaycontainer-stopevent').appendChild(congoButton); // Append to the container that holds controls
+        document.getElementById('map').appendChild(congoButton);
     </script>
 </body>
 </html>
