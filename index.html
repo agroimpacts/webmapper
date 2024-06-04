@@ -1,91 +1,173 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PMTiles OpenLayers Vector with MapTiler Hybrid Base Map</title>
-    <meta charset="utf-8"/>
-    <script src="https://cdn.jsdelivr.net/npm/ol@v7.3.0/dist/ol.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.3.0/ol.css">
-    <script src="https://unpkg.com/ol-pmtiles@0.3.0/dist/olpmtiles.js"></script>
-    <style>
-        body, #map {
-            height: 100vh;
-            margin: 0;
-        }
+<meta charset="utf-8" />
+<title>Mapping Africa</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
 
-        /* stlyle for zoom extent button */
-        button.congo-button {
-            position: absolute;
-            top: 60px;
-            left: 10px;
-            z-index: 1000;
-            padding: 5px 10px;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-    </style>
+<!-- MAPBOX API -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+
+<!-- D3 RESOURCE -->
+<script src="https://d3js.org/d3-collection.v1.min.js"></script>
+<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+<script src="https://d3js.org/d3-dsv.v1.min.js"></script>
+<script src="https://d3js.org/d3-request.v1.min.js"></script>
+
+<!-- JQUERY BOOSTSTRAP API -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
+<!-- PLUGIN RESOURCE -->
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-compare/v0.4.0/mapbox-gl-compare.js"></script>
+<link
+    rel="stylesheet"
+    href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-compare/v0.4.0/mapbox-gl-compare.css"
+    type="text/css"
+/>
+
+
+
+
+<!-- LOCAL RESOURCE -->
+<link href="/Summer24/webmapper/css/style.css" rel="stylesheet" />
+<link href="/Summer24/webmapper/css/bodyStyle.css" rel="stylesheet" />	
+
+
 </head>
+
+
 <body>
-    <div id="map"></div>
-    <script type="text/javascript">
-        // MapTiler hybrid base layer
-        const hybridBaseLayer = new ol.layer.Tile({
-            source: new ol.source.XYZ({
-                url: 'https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=0rXt9evmwC5e2EW3sauy',
-                attributions: '© MapTiler © OpenStreetMap contributors',
-                maxZoom: 20
-            })
-        });
 
-        // Vector layer for PMTiles
-        const vectorLayer = new ol.layer.VectorTile({
-                declutter: true,
-                source: new olpmtiles.PMTilesVectorSource({
-                    url: "https://raw.githack.com/grace-du/crop-land-maps/main/congo.pmtiles"
-                }),
-                style: new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: 'blue',
-                        width: 1,
-                    }),
-                    fill: new ol.style.Fill({
-                        color: 'rgba(0,0,0,0)', //polygon fill transparent
-                    })
-                })
-            });
+<div class="banner">
+  <p class="mrq">
+    ***The maps shown here are a Version 1 set of crop field boundaries for Ghana for 2018. Please see <a target="_blank" href="https://eartharxiv.org/repository/view/2155/">here</a> for more details on the dataset, including its accuracy. Version 2 maps and a redesigned map interface are coming soon!***
+  </p>
+</div>
 
-        // OpenLayers map with the new base layer and vector layer
-        const map = new ol.Map({
-            layers: [hybridBaseLayer, vectorLayer],
-            target: 'map',
-            view: new ol.View({
-                center: ol.proj.fromLonLat([3.3, 7.85]),
-                zoom: 5
-            })
-        });
+<div id="map-overlay" class="map-overlay"></div>
+<!-- <div id="sys-info" class="sys-info">
+  <div class="sys-info-text">ATTENTION: CURRENTLY WE ONLY HAVE GS/OS IMAGE FOR AOI 1,2,3</div>
+</div> -->
 
-        // Congo extent (center and zoom)
-        const congoCenter = ol.proj.fromLonLat([15.8277, -0.2280]);
-        const congoZoom = 7;
+<!-- Start: CSS Based Menu -->
+<h1 class="select-title">AOI Options</h1>
+<div class="select">
+  <select name="slct" id="slct">
+    <option selected disabled value="0">Choose an option</option>
+    <option value="1">AOI 1</option>
+    <option value="2">AOI 2</option>
+    <option value="3">AOI 3</option>
+    <option value="4">AOI 4</option>
+    <option value="5">AOI 5</option>
+    <option value="6">AOI 6</option>
+    <option value="7">AOI 7</option>
+    <option value="8">AOI 8</option>
+    <option value="9">AOI 9</option>
+    <option value="10">AOI 10</option>
+    <option value="11">AOI 11</option>
+    <option value="12">AOI 12</option>
+    <option value="13">AOI 13</option>
+    <option value="14">AOI 14</option>
+    <option value="15">AOI 15</option>
+    <option value="16">AOI 16</option>
+    <!-- <option value="99">All AOI</option> -->
+  </select>
+</div>
 
-        // Function to zoom to the Congo extent
-        function zoomToCongo() {
-            map.getView().animate({
-                center: congoCenter,
-                zoom: congoZoom,
-                duration: 1000 // Smooth transition animation (1 second)
-            });
-        }
+<div class="check-bowl">
+  <div>
+    <div class="check-atr" id="fieldvct-block" style="display: inline-block;">
+      <input type="checkbox" value="fieldPoly" id="fieldPoly">
+      Field Polygon
+    </div>
+    <div class="check-atr" id="aoisvct-block" style="display: inline-block; margin-left: 8%;">
+      <input type="checkbox" value="aoisPoly" id="aoisPoly">
+        AOIs Indicator
+    </div>
+  </div>
 
-        // Create and append the Congo button
-        const congoButton = document.createElement('button');
-        congoButton.innerHTML = 'Congo';
-        congoButton.className = 'congo-button';
-        congoButton.onclick = zoomToCongo;
-        // document.querySelector('.ol-overlaycontainer-stopevent').appendChild(congoButton); // Append to the container that holds controls
-        document.getElementById('map').appendChild(congoButton);
-    </script>
+
+  <div id="growseason-block">
+    Growing Season Images
+    <div class="check-atr">
+      <div style="display: inline-block;">
+        <input type="checkbox" value="GS" id="GS">
+      </div>
+      <div style="display: inline-block;">TCC</div>
+      
+      <div style="display: inline-block; margin-left: 20%;">
+        <input type="checkbox" id="GS-FCC"> 
+      </div>
+      <div style="display: inline-block;">FCC</div>
+  
+    </div>
+  </div>
+
+
+  <div id="offseason-block">
+    Off Season Images
+    <div class="check-atr">
+      <div style="display: inline-block;">
+        <input type="checkbox" value="OS" id="OS">
+      </div>
+      <div style="display: inline-block;">TCC</div>
+
+      <div style="display: inline-block; margin-left: 20%;">
+        <input type="checkbox" id="OS-FCC">
+      </div>
+      <div style="display: inline-block;">FCC</div>
+  
+    </div>
+  </div>
+
+
+  <div class="check-atr" id="probability-block">
+    <div style="display: inline-block;">
+      <input type="checkbox" value="Prob" id="Prob">
+    </div>
+    <div style="display: inline-block;">Probability Map</div>
+
+    <div style="display: inline-block; margin-left: 6%;">Compare</div>
+    
+    <div class="rightslider">
+      <label class="switch">
+        <input class="switch-input" type="checkbox" id="Prob-CP"/>
+        <span class="switch-label" data-on="On" data-off="Off"></span> 
+        <span class="switch-handle"></span> 
+      </label>
+    </div>
+
+  </div>
+  <!-- description -->
+  <div class="check-bowl-annotation">
+    <div>TCC: True Color Composite</div>
+    <div>FCC: False Color Composite</div>
+  </div>
+</div>
+<!-- End: CSS Based Menu -->
+
+
+<div id="comparison-container">
+  <div id="map" class="cpmap"></div>
+  <div id="map-brother" class="cpmap-reset"></div>
+</div>
+
+<script src="include/main.js"></script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-175597190-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-175597190-1');
+</script>
+
+
 </body>
+
 </html>
