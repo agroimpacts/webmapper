@@ -73,10 +73,10 @@
         });
 
         // Map of country, year, and version to PMTiles URL
-        const pмTilesSources = {
+        const pmTilesSources = {
             Congo: {
                 '2022': {
-                    'v1': 'https://github.com/agroimpacts/webmapper/raw/main/congo.pmtiles'
+                    'v1': 'https://raw.githack.com/agroimpacts/webmapper/main/congo.pmtiles'
                 }
             },
             Ghana: {
@@ -132,11 +132,18 @@
         let vectorLayer;
 
         function zoomToCountry(country, year, version) {
-            if (!vectorLayer) {
+            // Remove the existing vector layer if it exists
+            if (vectorLayer) {
+                map.removeLayer(vectorLayer);
+            }
+
+            // Create a new vector layer with the selected PMTiles URL
+            const pmTilesUrl = pmTilesSources[country][year][version];
+            if (pmTilesUrl) {
                 vectorLayer = new ol.layer.VectorTile({
                     declutter: true,
                     source: new olpmtiles.PMTilesVectorSource({
-                        url: pмTilesSources[country][year][version]
+                        url: pmTilesUrl
                     }),
                     style: new ol.style.Style({
                         stroke: new ol.style.Stroke({
@@ -144,13 +151,13 @@
                             width: 1,
                         }),
                         fill: new ol.style.Fill({
-                            color: 'rgba(0,0,0,0)', //polygon fill transparent
+                            color: 'rgba(0,0,0,0)', // polygon fill transparent
                         })
                     })
                 });
                 map.addLayer(vectorLayer);
             } else {
-                vectorLayer.getSource().setUrl(pмTilesSources[country][year][version]);
+                console.warn(`No PMTiles URL found for country ${country}, year ${year}, version ${version}`);
             }
 
             let center, zoom;
@@ -221,7 +228,7 @@
         // Function to update the year dropdown
         function updateYearDropdown(country) {
             yearContent.innerHTML = '';
-            Object.keys(pмTilesSources[country]).forEach(year => {
+            Object.keys(pmTilesSources[country]).forEach(year => {
                 const yearLink = document.createElement('a');
                 yearLink.textContent = year;
                 yearLink.onclick = () => {
@@ -235,7 +242,7 @@
         // Function to update the version dropdown
         function updateVersionDropdown(country, year) {
             versionContent.innerHTML = '';
-            Object.keys(pмTilesSources[country][year]).forEach(version => {
+            Object.keys(pmTilesSources[country][year]).forEach(version => {
                 const versionLink = document.createElement('a');
                 versionLink.textContent = version;
                 versionLink.onclick = () => zoomToCountry(country, year, version);
