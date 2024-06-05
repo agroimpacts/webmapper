@@ -202,9 +202,13 @@
             const countryLink = document.createElement('a');
             countryLink.textContent = country;
             countryLink.onclick = () => {
-                updateYearDropdown(country);
-                updateVersionDropdown(country, '2018');
-                zoomToCountry(country, '2018', 'v1');
+                if (country === 'Congo') {
+                    updateYearDropdown(country); // This will automatically select the year 2022 and version v1
+                } else {
+                    updateYearDropdown(country);
+                    updateVersionDropdown(country, '2018');
+                    zoomToCountry(country, '2018', 'v1');
+                }
             };
             countryContent.appendChild(countryLink);
         });
@@ -228,26 +232,39 @@
         // Function to update the year dropdown
         function updateYearDropdown(country) {
             yearContent.innerHTML = '';
-            Object.keys(pmTilesSources[country]).forEach(year => {
+            const years = Object.keys(pmTilesSources[country]);
+            years.forEach(year => {
                 const yearLink = document.createElement('a');
                 yearLink.textContent = year;
                 yearLink.onclick = () => {
                     updateVersionDropdown(country, year);
-                    zoomToCountry(country, year, 'v1');
+                    zoomToCountry(country, year, 'v1'); // Automatically select version 'v1'
                 };
                 yearContent.appendChild(yearLink);
             });
+
+            // If the country is Congo, automatically select the year 2022
+            if (country === 'Congo') {
+                updateVersionDropdown(country, '2022');
+                zoomToCountry(country, '2022', 'v1');
+            }
         }
 
         // Function to update the version dropdown
         function updateVersionDropdown(country, year) {
             versionContent.innerHTML = '';
-            Object.keys(pmTilesSources[country][year]).forEach(version => {
+            const versions = Object.keys(pmTilesSources[country][year]);
+            versions.forEach(version => {
                 const versionLink = document.createElement('a');
                 versionLink.textContent = version;
                 versionLink.onclick = () => zoomToCountry(country, year, version);
                 versionContent.appendChild(versionLink);
             });
+
+            // If the country is Congo and the year is 2022, automatically select the version 'v1'
+            if (country === 'Congo' && year === '2022') {
+                zoomToCountry(country, year, 'v1');
+            }
         }
 
         yearDropdown.appendChild(yearButton);
