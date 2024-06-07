@@ -1,50 +1,24 @@
-# Croplandmaps - PMTiles
+# Croplandmaps_V2 - Explorations on Mapbox GL JS
+This project visualize the cropland maps from Ghana using Mapbox GL JS.
 
-PMTiles Concepts
+[Cropland Maps Demo](https://agroimpacts.github.io/croplandmaps_V2/.)
 
-PMTiles is a single-file archive format for pyramids of tiled data. A PMTiles archive can be hosted on a storage platform like S3, and enables low-cost, zero-maintenance map applications.
+## Data
+[Geojson Data for Crop Fields](https://github.com/agroimpacts/croplandmaps/blob/master/geojson_aoi/aoi5_boundarymerge_reid.geojson)
 
-Most of the process is referred to here: https://docs.protomaps.com/pmtiles/
+[Tile Image URLs](https://github.com/agroimpacts/croplandmaps_V2/blob/master/Tile_resource/aoi123_sub_tms.csv)
 
-Using the nature of PMTiles is a single-file archive format for pyramids of tiled data, each scaling level can be preloaded, which can solve the slow loading speed caused by vector files in .pbf format. The problem of large cache data.
+## Built with
+### Mapbox GL JS
+- [mapbox-gl.js](https://docs.mapbox.com/mapbox-gl-js/api/)
+  - Map rendering
+  - Runtime data-join
+- [mapbox-gl-compare](https://github.com/mapbox/mapbox-gl-compare)
+  - Swipe and sync between two maps
+  
+### Third-party libraries
+- [D3](https://d3js.org/)
 
-## Web Map link
-
-[PMTiles Openlayer Vector Web Map](https://grace-du.github.io/crop-land-maps/)
-
-## Creating PMTiles
-
-
-### Install dependencies
-
-- Installed WSL (if your computer is Windows)
-- Tippecanoe: [installation instructions](https://github.com/mapbox/tippecanoe#installation)
-- MBUtil: [installation instructions](https://github.com/mapbox/mbutil#installation)
-- Download the pmtiles binary for your system at go-pmtiles/Releases.
-
-### Data processing
-Convert the vector tiles to PMTiles format:
-
-Combined GeoJSON Files:
-```
-sudo apt install jq
-```
-```
-cat file1.geojson file2.geojson | jq -c '.features[]' | paste -sd "," - >> combined.geojson
-```
-
-Convert .geojson file to mbtiles:
-```
-tippecanoe -o output.mbtiles -Z min_zoom -z max_zoom input.geojson
-```
-
-Convert .mbtiles to .pmtiles:
-```
-pmtiles convert INPUT.mbtiles OUTPUT.pmtiles
-```
+- [jQuery](https://jquery.com/)
 
 
-### Generating Web Map
-
-- Uploaded PMTiles to GitHub.https:main/congo.pmtiles
-- Enabled GitHub Pages. Set GitHub page to [index.html](https://github.com/grace-du/crop-land-maps/blob/main/index.html)
