@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PMTiles OpenLayers Vector with MapTiler Hybrid Base Map</title>
+    <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/npm/ol@v7.3.0/dist/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.3.0/ol.css">
+    <script src="https://unpkg.com/ol-pmtiles@0.3.0/dist/olpmtiles.js"></script>
+    <style>
+        body, #map {
+            height: 100vh;
+            margin: 0;
+        }
+
+        .checkboxes {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: row-reverse; 
+            gap: 20px; 
+        }
+
+        .checkboxes .country {
+            position: relative;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .hidden-checkboxes {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            flex-direction: column; 
+            gap: 5px;
+            padding: 5px;
+        }
+
+        .checkboxes .country:hover .hidden-checkboxes {
+            display: flex;
+        }
+
+        .hidden-checkboxes .year-label {
+            display: flex;
+            flex-direction: column; 
+            margin-bottom: 10px; 
+        }
+
+        .hidden-checkboxes label {
+            display: flex; 
+            flex-direction: column;
+            align-items: flex-start;
+            background-color: #f9f9f9;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .hidden-checkboxes input {
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+        const hybridBaseLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: 'https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=0rXt9evmwC5e2EW3sauy',
+                attributions: '© MapTiler © OpenStreetMap contributors',
+                maxZoom: 20
+            })
+        });
+
+        const pmTilesSources = {
+            Congo: {
+                '2022': {
+                    '1': 'https://raw.githack.com/Rahebe22/webmapper_r/main/congo.pmtiles'
+                }
+            },
+            Ghana: {
+                '2022': {
+                    '1': 'https://example.com/ghana_2022_v1.pmtiles'
+                }
+            },
+            Zambia: {
+                '2022': {
+                    '1': 'https://example.com/zambia_2022_v1.pmtiles'
+                }
+            },
+            Tanzania: {
+                '2022': {
+                    '1': 'https://example.com/tanzania_2022_v1.pmtiles'
+                }
+            }
+        };
+
+        const map = new ol.Map({
+            layers: [hybridBaseLayer],
+            target: 'map',
+            view: new ol.View({
+                center: ol.proj.fromLonLat([27.8493, -13.1339]), // Centering to Zambia
+                zoom: 5
+            })
+        });
+
+        const countryExtents = {
+            Congo: ol.proj.transformExtent([11.093, -5.037, 19.457, 5.399], 'EPSG:4326', 'EPSG:3857'),
+            Ghana: ol.proj.transformExtent([-3.260, 4.710, 1.203, 11.174], 'EPSG:4326', 'EPSG:3857'),
+            Zambia: ol.proj.transformExtent([21.999, -18.076, 33.485, -8.224], 'EPSG:4326', 'EPSG:3857'),
+            Tanzania: ol.proj.transformExtent([29.321, -11.741, 40.449, -0.984], 'EPSG:4326', 'EPSG:3857')
+        };
+
+        let vectorLayers = {};
+        let selectedCountries = new Set();
+
+        function updateZoom() {
+            if (selectedCountries.size > 0) {
+                let extent = ol.extent.createEmpty();
+                selectedCountries.forEach(country => {
+                    ol.extent.extend(extent, countryExtents[country]);
+                });
+                map.getView().fit(extent, { duration: 1000 });
+            }
+        }
+
+        function toggleCountrySelection(country) {
+            if (selectedCountries.has(country)) {
+                selectedCountries.delete(country);
+            } else {
+                selectedCountries.add(country);
+            }
+            updateZoom();
+        }
+
+        function updateVectorLayer(country, year, version, checked) {
+            const layerKey = `${country}-${year}-${version}`;
+            const pmTilesUrl = pmTilesSources[country][year][version];
+
+            if (checked) {
+                if (pmTilesUrl) {
+                    if (vectorLayers[layerKey]) {
+                        map.removeLayer(vectorLayers[layerKey]);
+                    }
+                    vectorLayers[layerKey] = new ol.layer.VectorTile({
+                        declutter: true,
+                        source: new olpmtiles.PMTilesVectorSource({
+                            url: pmTilesUrl
+                        }),
+                        style: new ol.style.Style({
+                            stroke: new ol.style.Stroke({
+                                color: 'lightblue',
+                                width: 1,
+                            }),
+                            fill: new ol.style.Fill({
+                                color: 'rgba(0,0,0,0)', // polygon fill transparent
+                            })
+                        })
+                    });
+                    map.addLayer(vectorLayers[layerKey]);
+                } else {
+                    console.warn(`No PMTiles URL found for country ${country}, year ${year}, version ${version}`);
+                }
+            } else {
+                if (vectorLayers[layerKey]) {
+                    map.removeLayer(vectorLayers[layerKey]);
+                    delete vectorLayers[layerKey];
+                }
+            }
+        }
+
+        function createCheckbox(id, label, country, year, version) {
+            const checkboxLabel = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = id;
+            checkbox.onchange = (event) => updateVectorLayer(country, year, version, event.target.checked);
+            checkboxLabel.appendChild(document.createTextNode(label));
+            checkboxLabel.appendChild(checkbox);
+            return checkboxLabel;
+        }
+
+        function createCountryCheckboxes(country) {
+            const countryDiv = document.createElement('div');
+            countryDiv.className = 'country';
+            countryDiv.appendChild(document.createTextNode(country));
+            countryDiv.onclick = () => toggleCountrySelection(country);
+
+            const hiddenDiv = document.createElement('div');
+            hiddenDiv.className = 'hidden-checkboxes';
+
+            // Field Boundary
+            const fieldBoundaryTitle = document.createElement('div');
+            fieldBoundaryTitle.appendChild(document.createTextNode('Field Boundary'));
+            fieldBoundaryTitle.style.fontWeight = 'bold';
+            hiddenDiv.appendChild(fieldBoundaryTitle);
+
+            const years = Object.keys(pmTilesSources[country]);
+            years.sort((a, b) => b - a);
+            years.forEach(year => {
+                const yearDiv = document.createElement('div');
+                yearDiv.className = 'year-label';
+                yearDiv.appendChild(document.createTextNode(year));
+
+                const versions = Object.keys(pmTilesSources[country][year]);
+                versions.forEach(version => {
+                    const versionLabel = createCheckbox(
+                        `${country}-${year}-${version}`,
+                        `v${version}`,
+                        country, year, version
+                    );
+                    yearDiv.appendChild(versionLabel);
+                });
+                hiddenDiv.appendChild(yearDiv);
+            });
+
+            // Land Cover
+            const landCoverTitle = document.createElement('div');
+            landCoverTitle.appendChild(document.createTextNode('Land Cover'));
+            landCoverTitle.style.fontWeight = 'bold';
+            hiddenDiv.appendChild(landCoverTitle);
+
+            const landCoverCheckbox = createCheckbox(
+                `${country}-2022-1`,
+                'v1',
+                country, '2022', '1'
+            );
+            hiddenDiv.appendChild(landCoverCheckbox);
+
+            countryDiv.appendChild(hiddenDiv);
+            return countryDiv;
+        }
+
+        const checkboxesContainer = document.createElement('div');
+        checkboxesContainer.className = 'checkboxes';
+        checkboxesContainer.appendChild(createCountryCheckboxes('Congo'));
+        checkboxesContainer.appendChild(createCountryCheckboxes('Ghana'));
+        checkboxesContainer.appendChild(createCountryCheckboxes('Zambia'));
+        checkboxesContainer.appendChild(createCountryCheckboxes('Tanzania'));
+
+        document.getElementById('map').appendChild(checkboxesContainer);
+
+        Object.keys(pmTilesSources).forEach(country => {
+            const years = Object.keys(pmTilesSources[country]).sort((a, b) => b - a);
+            const latestYear = years[0];
+            const latestVersion = Object.keys(pmTilesSources[country][latestYear])[0];
+            const checkboxId = `${country}-${latestYear}-${latestVersion}`;
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+                checkbox.checked = true;
+                updateVectorLayer(country, latestYear, latestVersion, true);
+            }
+        });
+    </script>
+</body>
+</html>
