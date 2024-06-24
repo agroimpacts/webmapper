@@ -96,7 +96,7 @@
             },
             Zambia: {
                 '2022': {
-                    '1': ''
+                    '1': 'http://localhost:8086/combined-v0.0.1.pmtiles'
                 }
             },
             Tanzania: {
@@ -169,6 +169,7 @@
                         })
                     });
                     map.addLayer(vectorLayers[layerKey]);
+                    console.log(`Added layer: ${layerKey}`);
                 } else {
                     console.warn(`No PMTiles URL found for country ${country}, year ${year}, version ${version}`);
                 }
@@ -176,6 +177,7 @@
                 if (vectorLayers[layerKey]) {
                     map.removeLayer(vectorLayers[layerKey]);
                     delete vectorLayers[layerKey];
+                    console.log(`Removed layer: ${layerKey}`);
                 }
             }
         }
